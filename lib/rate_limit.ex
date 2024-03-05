@@ -23,7 +23,7 @@ defmodule RateLimit do
   end
 
   defp call_worker(id, scale_ms) do
-    args = %{"count_hit" => 1,"created_at" => Utils.timestamp,"updated_at" => Utils.timestamp,"last_15_seconds_hit" => 0,"id" => String.to_atom(id), "scale_ms" => scale_ms}
+    args = %{"count_hit" => 1,"created_at" => Utils.timestamp,"updated_at" => Utils.timestamp,"last_seconds_hit" => 0,"id" => String.to_atom(id),"scale_ms" => scale_ms,"expire" => Utils.timestamp + scale_ms}
     DynamicSupervisor.start_child(args)
     |> case do
       {:ok, _pid} ->
