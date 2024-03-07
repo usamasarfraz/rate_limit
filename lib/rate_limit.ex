@@ -23,23 +23,23 @@ defmodule RateLimit do
   end
 
   def update_rate(id, scale_ms, limit) do
-    new_id = String.to_atom(id)
-    Worker.update_limit_and_scale(new_id, scale_ms, limit)
+    String.to_atom(id)
+    |> Worker.update_limit_and_scale(scale_ms, limit)
   end
 
   def update_scale(id, scale_ms) do
-    new_id = String.to_atom(id)
-    Worker.update_scale(new_id, scale_ms)
+    String.to_atom(id)
+    |> Worker.update_scale(scale_ms)
   end
 
   def update_limit(id, limit) do
-    new_id = String.to_atom(id)
-    Worker.update_limit(new_id, limit)
+    String.to_atom(id)
+    |> Worker.update_limit(limit)
   end
 
   defp call_worker(id, scale_ms) do
-    args = %{"count_hit" => 1,"limit" => 10,"created_at" => Utils.timestamp,"updated_at" => Utils.timestamp,"last_seconds_hit" => 0,"id" => id,"scale_ms" => scale_ms,"expire" => Utils.timestamp + scale_ms}
-    DynamicSupervisor.start_child(args)
+    %{"count_hit" => 1,"limit" => 10,"created_at" => Utils.timestamp,"updated_at" => Utils.timestamp,"last_seconds_hit" => 0,"id" => id,"scale_ms" => scale_ms,"expire" => Utils.timestamp + scale_ms}
+    |> DynamicSupervisor.start_child()
     |> case do
       {:ok, _pid} ->
         {:ok, 1, 10}
