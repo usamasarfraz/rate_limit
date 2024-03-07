@@ -13,10 +13,12 @@ defmodule RateLimit do
     case call_worker(new_id, 60000) do
       {:ok, count, limit} ->
         if count > limit do
-          {:deny, limit}
+          {:deny, limit, "limit exceed."}
         else
-          {:allow, count}
+          {:allow, count, "user allowed."}
         end
+      {:warning, limit} ->
+        {:deny, limit, "hit too many requests."}
       {:error, reason} ->
         {:error, reason}
     end
@@ -44,10 +46,18 @@ defmodule RateLimit do
       {:ok, _pid} ->
         {:ok, 1, 10}
       {:error, {:already_started, pid}} ->
-        %{"count_hit" => count_hit, "limit" => limit} = Worker.count_hit(pid)
-        {:ok, count_hit, limit}
+        Worker.count_hit(pid)
+        |> check_last_second_hits()
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  defp check_last_second_hits(%{"count_hit" => count_hit, "limit" => limit, "last_seconds_hit" => last_seconds_hit}) do
+    if last_seconds_hit >= limit do
+      {:warning, limit}
+    else
+      {:ok, count_hit, limit}
     end
   end
 end
